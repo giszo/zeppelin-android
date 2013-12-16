@@ -2,6 +2,7 @@ package com.giszo.zeppelin.ui.main;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,6 +28,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 public class MainActivity extends Activity implements OnItemClickListener {
@@ -35,11 +38,17 @@ public class MainActivity extends Activity implements OnItemClickListener {
 
 	private PlaybackIndicator indicator;
 	
+	private ImageView playPause;
+	
 	private PollTask refreshTask;
 	private Timer refreshTimer;
 
+	private AtomicBoolean playing = new AtomicBoolean(false);
+	
 	private Receiver receiver = new Receiver();
 	
+	private enum PlayerState { STOPPED, PLAYING, PAUSED };
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -53,27 +62,28 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		
 		indicator = (PlaybackIndicator)findViewById(R.id.main_indicator);
 
-		// play button
-		findViewById(R.id.main_play).setOnClickListener(
+		// play/pause button
+		playPause = (ImageView)findViewById(R.id.main_play_pause); 
+		playPause.setOnClickListener(
 			new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					Intent intent = new Intent(MainActivity.this, Service.class);
-					intent.putExtra("action", "player_play");
+					if (playing.get())
+						intent.putExtra("action", "player_pause");
+					else
+						intent.putExtra("action", "player_play");
 					MainActivity.this.startService(intent);
+					
+					// negate the playing flag
+					playing.set(!playing.get());
+					// update the play/pause button
+					updatePlayPause();
+					
+					// perform a poll event immediately to refresh the controls
+					doPoll();
 				}
 			});
-				
-		// pause button
-		findViewById(R.id.main_pause).setOnClickListener(
-				new View.OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						Intent intent = new Intent(MainActivity.this, Service.class);
-						intent.putExtra("action", "player_pause");
-						MainActivity.this.startService(intent);
-					}
-				});
 
 		// stop button
 		findViewById(R.id.main_stop).setOnClickListener(
@@ -83,6 +93,9 @@ public class MainActivity extends Activity implements OnItemClickListener {
 						Intent intent = new Intent(MainActivity.this, Service.class);
 						intent.putExtra("action", "player_stop");
 						MainActivity.this.startService(intent);
+						
+						// perform a poll event immediately to refresh the controls
+						doPoll();
 					}
 				});
 
@@ -94,6 +107,9 @@ public class MainActivity extends Activity implements OnItemClickListener {
 						Intent intent = new Intent(MainActivity.this, Service.class);
 						intent.putExtra("action", "player_prev");
 						MainActivity.this.startService(intent);
+						
+						// perform a poll event immediately to refresh the controls
+						doPoll();
 					}
 				});
 
@@ -105,6 +121,9 @@ public class MainActivity extends Activity implements OnItemClickListener {
 						Intent intent = new Intent(MainActivity.this, Service.class);
 						intent.putExtra("action", "player_next");
 						MainActivity.this.startService(intent);
+						
+						// perform a poll event immediately to refresh the controls
+						doPoll();
 					}
 				});
 
@@ -224,6 +243,11 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			} else if (action.equals("player_status_downloaded")) {
 				try {
 					JSONObject status = new JSONObject(intent.getStringExtra("status"));
+					
+					// playing flag
+					playing.set(status.getInt("state") == PlayerState.PLAYING.ordinal());
+					updatePlayPause();
+						
 					int currentFile = status.isNull("current") ? -1 : status.getInt("current");
 					
 					adapter.setCurrent(currentFile);
@@ -241,9 +265,20 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	private class PollTask extends TimerTask {
 		@Override
 		public void run() {
-			Intent intent = new Intent(MainActivity.this, Service.class);
-			intent.putExtra("action", "player_status");
-			MainActivity.this.startService(intent);
+			doPoll();
 		}
+	}
+	
+	private void doPoll() {
+		Intent intent = new Intent(MainActivity.this, Service.class);
+		intent.putExtra("action", "player_status");
+		startService(intent);
+	}
+	
+	private void updatePlayPause() {
+		if (playing.get())
+			playPause.setImageResource(R.drawable.pause);
+		else
+			playPause.setImageResource(R.drawable.play);
 	}
 }

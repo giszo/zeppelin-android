@@ -36,16 +36,10 @@
             android:src="@drawable/prev"/>
 
         <ImageView
-            android:id="@+id/main_play"
+            android:id="@+id/main_play_pause"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:src="@drawable/play"/>
-        
-        <ImageView
-            android:id="@+id/main_pause"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:src="@drawable/pause"/>
         
         <ImageView
             android:id="@+id/main_stop"
