@@ -17,6 +17,8 @@
     <string name="action_queue_album">Queue album</string>
     <string name="action_queue_file">Queue file</string>
 
+    <string name="unknown_artist">Unknown Artist</string>
+    
     <plurals name="number_of_albums">
         <item quantity="one">1 album</item>
         <item quantity="other">%d albums</item>

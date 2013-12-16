@@ -37,7 +37,7 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 	@SuppressLint("UseSparseArrays")
 	private Map<Integer, List<Album>> albumMap = new HashMap<Integer, List<Album>>();
 	
-	private enum State { ARTISTS, ALBUMS, FILES };
+	private enum State { ARTISTS, ALBUMS, FILES, FILES_UNKNOWN };
 	private State state = State.ARTISTS;
 	
 	private ListView listView;
@@ -63,6 +63,7 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 		LocalBroadcastManager lbm = LocalBroadcastManager.getInstance(this);
 		lbm.registerReceiver(receiver, new IntentFilter("artist_list_received"));
 		lbm.registerReceiver(receiver, new IntentFilter("album_list_received"));
+		lbm.registerReceiver(receiver, new IntentFilter("files_of_artist_received"));
 		lbm.registerReceiver(receiver, new IntentFilter("files_of_album_received"));
 		
 		// ask the service to load the list of artists
@@ -122,11 +123,13 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 		}
 			
 		case FILES :
+		case FILES_UNKNOWN :
 		{
 			MenuInflater inflater = getMenuInflater();
 			inflater.inflate(R.menu.file, menu);
 			break;
 		}
+
 		}
 	}
 	
@@ -235,25 +238,20 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 				catch (JSONException e)
 				{
 				}
-			} else if (action.equals("files_of_album_received")) {
-				fileAdapter.clear();
-
-				try
-				{
-					JSONArray list = new JSONArray(intent.getStringExtra("files"));
-
-					for (int i = 0; i < list.length(); ++i)
-					{
-						JSONObject item = list.getJSONObject(i);
-						fileAdapter.add(new File(
-							item.getInt("id"),
-							item.getString("name"),
-							item.getString("title"),
-							item.getInt("length")));
-					}
+			} else if (action.equals("files_of_artist_received")) {
+				try {
+					buildFileList(new JSONArray(intent.getStringExtra("files")));
+				} catch (JSONException e) {
+					return;
 				}
-				catch (JSONException e)
-				{
+
+				listView.setAdapter(fileAdapter);
+
+				state = State.FILES_UNKNOWN;
+			} else if (action.equals("files_of_album_received")) {
+				try {
+					buildFileList(new JSONArray(intent.getStringExtra("files")));
+				} catch (JSONException e) {
 					return;
 				}
 
@@ -270,6 +268,16 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 		case ARTISTS :
 		{
 			Artist artist = (Artist)artistAdapter.getItem(pos);
+			
+			// handle unknown artist differently
+			if (artist.getId() == -1) {
+				Intent intent = new Intent(this, Service.class);
+				intent.putExtra("action", "library_get_files_of_artist");
+				intent.putExtra("id", -1);
+				startService(intent);
+				return;
+			}
+			
 			List<Album> albums = albumMap.get(Integer.valueOf(artist.getId()));
 			
 			if (albums == null)
@@ -296,6 +304,7 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 		}
 			
 		case FILES :
+		case FILES_UNKNOWN :
 			break;
 		}
 	}
@@ -316,6 +325,11 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 			listView.setAdapter(albumAdapter);
 			state = State.ALBUMS;
 			break;
+			
+		case FILES_UNKNOWN :
+			listView.setAdapter(artistAdapter);
+			state = State.ARTISTS;
+			break;
 		}
 	}
 	
@@ -323,5 +337,19 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 		Intent intent = new Intent(this, Service.class);
 		intent.putExtra("action", "player_queue_get");
 		startService(intent);
+	}
+	
+	private void buildFileList(JSONArray list) throws JSONException {
+		fileAdapter.clear();
+		
+		for (int i = 0; i < list.length(); ++i) {
+			JSONObject item = list.getJSONObject(i);
+
+			fileAdapter.add(new File(
+				item.getInt("id"),
+				item.getString("name"),
+				item.getString("title"),
+				item.getInt("length")));
+		}
 	}
 }

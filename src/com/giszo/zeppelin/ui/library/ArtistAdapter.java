@@ -55,7 +55,7 @@ public class ArtistAdapter extends BaseAdapter {
 		TextView description = (TextView)view.findViewById(R.id.library_artist_item_description);
 		
 		// set name
-		name.setText(artist.getName());
+		name.setText(artist.getId() == -1 ? context.getResources().getString(R.string.unknown_artist) : artist.getName());
 		
 		// set description
 		StringBuilder sb = new StringBuilder();

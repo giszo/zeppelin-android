@@ -40,6 +40,8 @@ public class Service extends IntentService {
 			libraryGetArtists();
 		else if (action.equals("library_get_albums"))
 			libraryGetAlbums();
+		else if (action.equals("library_get_files_of_artist"))
+			libraryGetFilesOfArtist(intent.getIntExtra("id", -1));
 		else if (action.equals("library_get_files_of_album"))
 			libraryGetFilesOfAlbum(intent.getIntExtra("id", -1));
 		else if (action.equals("player_queue_get"))
@@ -108,6 +110,36 @@ public class Service extends IntentService {
 		}		
 	}
 	
+	private void libraryGetFilesOfArtist(int id) {
+		JSONObject params;
+		
+		try
+		{
+			params = new JSONObject();
+			params.put("artist_id", id);
+		}
+		catch (JSONException e)
+		{
+			return;
+		}
+		
+		JSONObject resp = execute("library_get_files_of_artist", params);
+		
+		if (resp == null)
+			return;
+		
+		try
+		{
+			Intent intent = new Intent("files_of_artist_received");
+			intent.putExtra("files", resp.getJSONArray("result").toString());
+			
+			LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+		}
+		catch (JSONException e)
+		{
+		}		
+	}
+
 	private void libraryGetFilesOfAlbum(int id) {
 		if (id == -1)
 			return;
