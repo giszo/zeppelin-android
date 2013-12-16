@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Zeppelin</string>
+
+    <string name="title_activity_main">Zeppelin</string>
+    <string name="title_activity_library">Library</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- main activity -->
+	<string name="action_library">Library</string>
+    <string name="action_settings">Settings</string>
+
+    <!-- library activity -->
+    <string name="action_library_scan">Scan</string>
+
+    <string name="action_queue_album">Queue album</string>
+    <string name="action_queue_file">Queue file</string>
+
+    <plurals name="number_of_albums">
+        <item quantity="one">1 album</item>
+        <item quantity="other">%d albums</item>
+    </plurals>
+    
+    <plurals name="number_of_songs">
+        <item quantity="one">1 song</item>
+        <item quantity="other">%d songs</item>
+    </plurals>
+</resources>

@@ -1,0 +1,67 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
+    tools:context=".MainActivity" >
+
+    <ListView
+        android:id="@+id/main_queue"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+    
+    <com.giszo.zeppelin.ui.controls.PlaybackIndicator
+        android:id="@+id/main_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"/>
+        
+        <ImageView
+            android:id="@+id/main_prev"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/prev"/>
+
+        <ImageView
+            android:id="@+id/main_play"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/play"/>
+        
+        <ImageView
+            android:id="@+id/main_pause"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/pause"/>
+        
+        <ImageView
+            android:id="@+id/main_stop"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/stop"/>
+
+        <ImageView
+            android:id="@+id/main_next"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/next"/>
+        
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"/>
+    </LinearLayout>
+</LinearLayout>
