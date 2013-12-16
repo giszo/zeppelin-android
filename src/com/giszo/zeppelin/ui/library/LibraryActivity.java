@@ -92,10 +92,8 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId())
-		{
-		case R.id.action_library_scan :
-		{
+		switch (item.getItemId()) {
+		case R.id.action_library_scan : {
 			Intent intent = new Intent(this, Service.class);
 			intent.putExtra("action", "library_scan");
 			startService(intent);
@@ -115,16 +113,14 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 		case ARTISTS :
 			break;
 			
-		case ALBUMS :
-		{
+		case ALBUMS : {
 			MenuInflater inflater = getMenuInflater();
 			inflater.inflate(R.menu.album, menu);
 			break;
 		}
 			
 		case FILES :
-		case FILES_UNKNOWN :
-		{
+		case FILES_UNKNOWN : {
 			MenuInflater inflater = getMenuInflater();
 			inflater.inflate(R.menu.file, menu);
 			break;
@@ -135,10 +131,8 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-		switch (item.getItemId())
-		{
-		case R.id.action_queue_album :
-		{
+		switch (item.getItemId()) {
+		case R.id.action_queue_album : {
 			AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
 			Album album = (Album)albumAdapter.getItem(info.position);
 			
@@ -154,8 +148,7 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 			return true;
 		}
 
-		case R.id.action_queue_file :
-		{
+		case R.id.action_queue_file : {
 			AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
 			File file = (File)fileAdapter.getItem(info.position);
 			
@@ -183,14 +176,12 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 			String action = intent.getAction();
 			
 			if (action.equals("artist_list_received")) {
-				try
-				{
+				try {
 					artistAdapter.clear();
 
 					JSONArray list = new JSONArray(intent.getStringExtra("artists"));
 					
-					for (int i = 0; i < list.length(); ++i)
-					{
+					for (int i = 0; i < list.length(); ++i) {
 						JSONObject item = list.getJSONObject(i);
 						artistAdapter.add(new Artist(
 							item.getInt("id"),
@@ -200,28 +191,23 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 					}
 					
 					Log.d(TAG, "Got " + artistAdapter.getCount() + " artists");
-				}
-				catch (JSONException e)
-				{
+				} catch (JSONException e) {
 				}
 				
 				artistAdapter.notifyDataSetChanged();
 			} else if (action.equals("album_list_received")) {
-				try
-				{
+				try {
 					albumMap.clear();
 					
 					JSONArray list = new JSONArray(intent.getStringExtra("albums"));
 					
-					for (int i = 0; i < list.length(); ++i)
-					{
+					for (int i = 0; i < list.length(); ++i) {
 						JSONObject item = list.getJSONObject(i);
 						Integer artist = Integer.valueOf(item.getInt("artist"));
 						
 						List<Album> albums = albumMap.get(artist);
 						
-						if (albums == null)
-						{
+						if (albums == null) {
 							albums = new ArrayList<Album>();
 							albumMap.put(artist, albums);
 						}
@@ -234,9 +220,7 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 					}
 					
 					Log.d(TAG, "Got " + list.length() + " albums");
-				}
-				catch (JSONException e)
-				{
+				} catch (JSONException e) {
 				}
 			} else if (action.equals("files_of_artist_received")) {
 				try {
@@ -265,8 +249,7 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
 		switch (state) {
-		case ARTISTS :
-		{
+		case ARTISTS : {
 			Artist artist = (Artist)artistAdapter.getItem(pos);
 			
 			// handle unknown artist differently
@@ -291,8 +274,7 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 			break;
 		}
 			
-		case ALBUMS :
-		{
+		case ALBUMS : {
 			Album album = (Album)albumAdapter.getItem(pos);
 			
 			Intent intent = new Intent(this, Service.class);

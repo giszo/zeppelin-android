@@ -80,15 +80,12 @@ public class Service extends IntentService {
 		if (resp == null)
 			return;
 
-		try
-		{
+		try {
 			Intent intent = new Intent("artist_list_received");
 			intent.putExtra("artists", resp.getJSONArray("result").toString());
 
 			LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 		}
 	}
 	
@@ -98,28 +95,22 @@ public class Service extends IntentService {
 		if (resp == null)
 			return;
 
-		try
-		{
+		try {
 			Intent intent = new Intent("album_list_received");
 			intent.putExtra("albums", resp.getJSONArray("result").toString());
 
 			LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 		}		
 	}
 	
 	private void libraryGetFilesOfArtist(int id) {
 		JSONObject params;
 		
-		try
-		{
+		try {
 			params = new JSONObject();
 			params.put("artist_id", id);
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 			return;
 		}
 		
@@ -128,15 +119,12 @@ public class Service extends IntentService {
 		if (resp == null)
 			return;
 		
-		try
-		{
+		try {
 			Intent intent = new Intent("files_of_artist_received");
 			intent.putExtra("files", resp.getJSONArray("result").toString());
 			
 			LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 		}		
 	}
 
@@ -146,13 +134,10 @@ public class Service extends IntentService {
 		
 		JSONObject params;
 		
-		try
-		{
+		try {
 			params = new JSONObject();
 			params.put("album_id", id);
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 			return;
 		}
 		
@@ -161,15 +146,12 @@ public class Service extends IntentService {
 		if (resp == null)
 			return;
 		
-		try
-		{
+		try {
 			Intent intent = new Intent("files_of_album_received");
 			intent.putExtra("files", resp.getJSONArray("result").toString());
 			
 			LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 		}
 	}
 
@@ -179,15 +161,12 @@ public class Service extends IntentService {
 		if (resp == null)
 			return;
 
-		try
-		{
+		try {
 			Intent intent = new Intent("player_queue_downloaded");
 			intent.putExtra("queue", resp.getJSONArray("result").toString());
 
 			LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 		}
 	}
 
@@ -197,13 +176,10 @@ public class Service extends IntentService {
 		
 		JSONObject params;
 		
-		try
-		{
+		try {
 			params = new JSONObject();
 			params.put("id", id);
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 			return;
 		}
 		
@@ -216,13 +192,10 @@ public class Service extends IntentService {
 		
 		JSONObject params;
 		
-		try
-		{
+		try {
 			params = new JSONObject();
 			params.put("id", id);
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 			return;
 		}
 		
@@ -235,15 +208,12 @@ public class Service extends IntentService {
 		if (resp == null)
 			return;
 		
-		try
-		{
+		try {
 			Intent intent = new Intent("player_status_downloaded");
 			intent.putExtra("status", resp.getJSONObject("result").toString());
 			
 			LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 		}
 	}
 
@@ -274,13 +244,10 @@ public class Service extends IntentService {
 		
 		JSONObject params;
 		
-		try
-		{
+		try {
 			params = new JSONObject();
 			params.put("index", index);
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 			return;
 		}
 		
@@ -305,8 +272,7 @@ public class Service extends IntentService {
 		HttpClient client = new DefaultHttpClient();
 		HttpPost post = new HttpPost(server);		
 
-		try
-		{
+		try {
 			JSONObject req = new JSONObject();
 			req.put("jsonrpc", "2.0");
 			req.put("id", 1);
@@ -322,17 +288,11 @@ public class Service extends IntentService {
 			post.setEntity(new StringEntity(req.toString()));
 			String response = client.execute(post, responseHandler);
 			return new JSONObject(response);
-		}
-		catch (JSONException e)
-		{
+		} catch (JSONException e) {
 			return null;
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			return null;
-		}
-		catch (IllegalStateException e)
-		{
+		} catch (IllegalStateException e) {
 			return null;
 		}
 	}

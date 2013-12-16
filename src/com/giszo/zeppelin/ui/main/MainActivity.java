@@ -171,17 +171,14 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		switch (keyCode)
-		{
-		case KeyEvent.KEYCODE_VOLUME_UP :
-		{
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_VOLUME_UP : {
 			Intent intent = new Intent(this, Service.class);
 			intent.putExtra("action", "player_inc_volume");
 			startService(intent);
 			return true;
 		}
-		case KeyEvent.KEYCODE_VOLUME_DOWN :
-		{
+		case KeyEvent.KEYCODE_VOLUME_DOWN : {
 			Intent intent = new Intent(this, Service.class);
 			intent.putExtra("action", "player_dec_volume");
 			startService(intent);
@@ -200,8 +197,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		startService(intent);
 	}
 
-	private class Receiver extends BroadcastReceiver
-	{
+	private class Receiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
@@ -209,12 +205,10 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			if (action.equals("player_queue_downloaded")) {
 				adapter.clear();
 				
-				try
-				{
+				try {
 					JSONArray list = new JSONArray(intent.getStringExtra("queue"));
 
-					for (int i = 0; i < list.length(); ++i)
-					{
+					for (int i = 0; i < list.length(); ++i) {
 						JSONObject item = list.getJSONObject(i);
 						adapter.add(new File(
 							item.getInt("id"),
@@ -222,16 +216,13 @@ public class MainActivity extends Activity implements OnItemClickListener {
 							item.getString("title"),
 							item.getInt("length")));
 					}
-				}
-				catch (JSONException e)
-				{
+				} catch (JSONException e) {
 					return;
 				}
 
 				adapter.notifyDataSetChanged();
 			} else if (action.equals("player_status_downloaded")) {
-				try
-				{
+				try {
 					JSONObject status = new JSONObject(intent.getStringExtra("status"));
 					int currentFile = status.isNull("current") ? -1 : status.getInt("current");
 					
@@ -241,10 +232,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 						indicator.set(0, 0);
 					else
 						indicator.set(status.getInt("position"), adapter.getFile(currentFile).getLength());
-				}
-				catch (JSONException e)
-				{
-					e.printStackTrace();
+				} catch (JSONException e) {
 				}
 			}
 		}	
