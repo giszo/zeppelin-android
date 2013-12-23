@@ -267,8 +267,10 @@ public class MainActivity extends Activity implements OnItemClickListener {
 					// update indicator
 					if (currentFile == -1)
 						indicator.set(0, 0);
-					else
-						indicator.set(status.getInt("position"), fileMap.get(currentFile).getLength());
+					else {
+						com.giszo.zeppelin.ui.library.File file = fileMap.get(Integer.valueOf(currentFile));
+						indicator.set(status.getInt("position"), file == null ? 0 : file.getLength());
+					}
 				} catch (JSONException e) {
 				}
 			}
