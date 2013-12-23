@@ -1,5 +1,9 @@
 package com.giszo.zeppelin.ui.main;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -9,9 +13,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.giszo.zeppelin.R;
+import com.giszo.zeppelin.queue.File;
+import com.giszo.zeppelin.queue.Album;
+import com.giszo.zeppelin.queue.ContainerQueueItem;
 import com.giszo.zeppelin.service.Service;
 import com.giszo.zeppelin.ui.controls.PlaybackIndicator;
-import com.giszo.zeppelin.ui.library.File;
 import com.giszo.zeppelin.ui.library.LibraryActivity;
 import com.giszo.zeppelin.ui.settings.SettingsActivity;
 
@@ -35,6 +41,7 @@ import android.widget.ListView;
 public class MainActivity extends Activity implements OnItemClickListener {
 	private ListView listView;
 	private QueueAdapter adapter = new QueueAdapter(this);
+	private Map<Integer, com.giszo.zeppelin.ui.library.File> fileMap = new HashMap<Integer, com.giszo.zeppelin.ui.library.File>();
 
 	private PlaybackIndicator indicator;
 	
@@ -210,10 +217,26 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	
 	@Override
 	public void onItemClick(AdapterView<?> adapter, View view, int pos, long id) {
-		Intent intent = new Intent(this, Service.class);
-		intent.putExtra("action", "player_goto");
-		intent.putExtra("index", pos);
-		startService(intent);
+		com.giszo.zeppelin.queue.QueueItem item = (com.giszo.zeppelin.queue.QueueItem)adapter.getItemAtPosition(pos);
+		
+		if (item == null)
+			return;
+		
+		if (item instanceof File) {
+			List<Integer> idx = new ArrayList<Integer>();
+			item.indexOf(idx, null);
+
+			Intent intent = new Intent(this, Service.class);
+			intent.putExtra("action", "player_goto");
+			intent.putExtra("index", new JSONArray(idx).toString());
+			startService(intent);
+			
+			// poll immediately to update the current file in the queue
+			doPoll();
+		} else if (item instanceof Album) {
+			((Album)item).toggleVisibility();
+			MainActivity.this.adapter.notifyDataSetChanged();
+		}
 	}
 
 	private class Receiver extends BroadcastReceiver {
@@ -222,24 +245,11 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			String action = intent.getAction();
 			
 			if (action.equals("player_queue_downloaded")) {
-				adapter.clear();
-				
 				try {
-					JSONArray list = new JSONArray(intent.getStringExtra("queue"));
-
-					for (int i = 0; i < list.length(); ++i) {
-						JSONObject item = list.getJSONObject(i);
-						adapter.add(new File(
-							item.getInt("id"),
-							item.getString("name"),
-							item.getString("title"),
-							item.getInt("length")));
-					}
+					updateQueue(new JSONArray(intent.getStringExtra("queue")));
 				} catch (JSONException e) {
-					return;
+					e.printStackTrace();
 				}
-
-				adapter.notifyDataSetChanged();
 			} else if (action.equals("player_status_downloaded")) {
 				try {
 					JSONObject status = new JSONObject(intent.getStringExtra("status"));
@@ -250,12 +260,15 @@ public class MainActivity extends Activity implements OnItemClickListener {
 						
 					int currentFile = status.isNull("current") ? -1 : status.getInt("current");
 					
+					// update queue
 					adapter.setCurrent(currentFile);
-					
+					adapter.notifyDataSetChanged();
+
+					// update indicator
 					if (currentFile == -1)
 						indicator.set(0, 0);
 					else
-						indicator.set(status.getInt("position"), adapter.getFile(currentFile).getLength());
+						indicator.set(status.getInt("position"), fileMap.get(currentFile).getLength());
 				} catch (JSONException e) {
 				}
 			}
@@ -268,13 +281,62 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			doPoll();
 		}
 	}
-	
+
 	private void doPoll() {
 		Intent intent = new Intent(MainActivity.this, Service.class);
 		intent.putExtra("action", "player_status");
 		startService(intent);
 	}
-	
+
+	private void updateQueueLevel(int depth, Map<Integer, com.giszo.zeppelin.ui.library.File> fileMap, ContainerQueueItem parent, JSONArray items) throws JSONException {
+		for (int i = 0; i < items.length(); ++i) {
+			JSONObject item = items.getJSONObject(i);
+
+			int type = item.getInt("type");
+			
+			switch (type) {
+			case 0 :
+				// playlist
+				break;
+				
+			case 1 :
+				// album
+				Album album = new Album(parent, depth, new com.giszo.zeppelin.ui.library.Album(
+					item.getInt("id"),
+					item.getString("name"),
+					0,
+					0));
+				updateQueueLevel(depth + 1, fileMap, album, item.getJSONArray("files"));
+				parent.add(album);
+				
+				break;
+				
+			case 2 : {
+				// file
+				com.giszo.zeppelin.ui.library.File file = new com.giszo.zeppelin.ui.library.File(
+					item.getInt("id"),
+					item.getString("name"),
+					item.getString("title"),
+					item.getInt("length"));
+				fileMap.put(Integer.valueOf(file.getId()), file);
+				parent.add(new File(parent, depth, file));
+
+				break;
+			}
+			}	
+		}
+	}
+
+	private void updateQueue(JSONArray queue) throws JSONException {
+		ContainerQueueItem root = new ContainerQueueItem(null /* no parent */, 0 /* does not really matter */);
+		fileMap.clear();
+
+		updateQueueLevel(0, fileMap, root, queue);
+
+		adapter.setRoot(root);
+		adapter.notifyDataSetChanged();
+	}
+
 	private void updatePlayPause() {
 		if (playing.get())
 			playPause.setImageResource(R.drawable.pause);

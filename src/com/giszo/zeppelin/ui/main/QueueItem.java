@@ -1,7 +1,9 @@
 package com.giszo.zeppelin.ui.main;
 
 import com.giszo.zeppelin.R;
+import com.giszo.zeppelin.ui.library.Album;
 import com.giszo.zeppelin.ui.library.File;
+import com.giszo.zeppelin.utils.TimeFormatter;
 
 import android.content.Context;
 import android.graphics.Typeface;
@@ -12,6 +14,7 @@ import android.widget.TextView;
 
 public class QueueItem extends LinearLayout {
 	private TextView name;
+	private TextView description;
 
 	public QueueItem(Context context) {
 		this(context, null);
@@ -27,12 +30,31 @@ public class QueueItem extends LinearLayout {
 		LayoutInflater.from(context).inflate(R.layout.queue_item, this);
 		
 		name = (TextView)findViewById(R.id.queue_item_name);
+		description = (TextView)findViewById(R.id.queue_item_description);
 	}
 	
-	public void fill(File file, boolean played) {
-		String s = file.getTitle().isEmpty() ? file.getName() : file.getTitle();
+	public void fill(com.giszo.zeppelin.queue.QueueItem item, boolean played) {
+		// set left padding based on the depth of the current item
+		setPadding(item.getDepth() * 40, 0, 0, 0);
 
-		name.setText(s);
+		if (item instanceof com.giszo.zeppelin.queue.File) {
+			File file = ((com.giszo.zeppelin.queue.File)item).getFile();
+			String s = file.getTitle().isEmpty() ? file.getName() : file.getTitle();
+
+			name.setText(s);
+			description.setText(TimeFormatter.format(file.getLength()));
+		} else if (item instanceof com.giszo.zeppelin.queue.Album) {
+			com.giszo.zeppelin.queue.Album qa = (com.giszo.zeppelin.queue.Album)item;
+			Album album = qa.getAlbum();
+
+			name.setText(album.getName());
+			description.setText(
+				getResources().getQuantityString(
+					R.plurals.number_of_songs,
+					qa.getSongCount(),
+					qa.getSongCount()));
+		}
+		
 		name.setTypeface(null, played ? Typeface.BOLD : Typeface.NORMAL);
 	}
 }

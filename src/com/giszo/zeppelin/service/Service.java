@@ -8,6 +8,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -63,7 +64,10 @@ public class Service extends IntentService {
 		else if (action.equals("player_next"))
 			playerNext();
 		else if (action.equals("player_goto"))
-			playerGoto(intent.getIntExtra("index", -1));
+			try {
+				playerGoto(new JSONArray(intent.getStringExtra("index")));
+			} catch (JSONException e) {
+			}
 		else if (action.equals("player_inc_volume"))
 			playerIncVolume();
 		else if (action.equals("player_dec_volume"))
@@ -237,10 +241,9 @@ public class Service extends IntentService {
 		execute("player_next", null);
 	}
 
-	private void playerGoto(int index) {
-		if (index == -1)
+	private void playerGoto(JSONArray index) {
+		if (index.length() == 0)
 			return;
-		
 		
 		JSONObject params;
 		
@@ -289,10 +292,13 @@ public class Service extends IntentService {
 			String response = client.execute(post, responseHandler);
 			return new JSONObject(response);
 		} catch (JSONException e) {
+			e.printStackTrace();
 			return null;
 		} catch (IOException e) {
+			e.printStackTrace();
 			return null;
 		} catch (IllegalStateException e) {
+			e.printStackTrace();
 			return null;
 		}
 	}
