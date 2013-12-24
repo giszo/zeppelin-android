@@ -48,7 +48,8 @@ public class ContainerQueueItem extends QueueItem {
 	
 	@Override
 	public void indexOf(List<Integer> index, QueueItem item) {
-		index.add(0, Integer.valueOf(items.indexOf(item)));
+		if (item != null)
+			index.add(0, Integer.valueOf(items.indexOf(item)));
 		
 		if (parent != null)
 			parent.indexOf(index, this);

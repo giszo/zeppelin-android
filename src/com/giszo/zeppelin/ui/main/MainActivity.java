@@ -28,10 +28,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
@@ -66,6 +68,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		listView = (ListView)findViewById(R.id.main_queue);
 		listView.setAdapter(adapter);
 		listView.setOnItemClickListener(this);
+		registerForContextMenu(listView);
 		
 		indicator = (PlaybackIndicator)findViewById(R.id.main_indicator);
 
@@ -139,9 +142,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		lbm.registerReceiver(receiver, new IntentFilter("player_status_downloaded"));
 
 		// ask the service to load the player queue
-		Intent intent = new Intent(this, Service.class);
-		intent.putExtra("action", "player_queue_get");
-		startService(intent);
+		refreshQueue();
 	}
 	
 	@Override
@@ -196,6 +197,42 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	}
 	
 	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+		getMenuInflater().inflate(R.menu.main_queue, menu);
+	}
+
+	@Override
+	public boolean onContextItemSelected(MenuItem menuItem) {
+		switch (menuItem.getItemId()) {
+		case R.id.action_main_queue_remove : {
+			AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuItem.getMenuInfo();
+			com.giszo.zeppelin.queue.QueueItem item = (com.giszo.zeppelin.queue.QueueItem)adapter.getItem(info.position);
+			
+			if (item != null) {
+				List<Integer> index = new ArrayList<Integer>();
+				item.indexOf(index, null);
+				
+				Intent intent = new Intent(this, Service.class);
+				intent.putExtra("action", "player_queue_remove");
+				intent.putExtra("index", new JSONArray(index).toString());
+				startService(intent);
+
+				// refresh the queue
+				refreshQueue();
+				
+				// poll immediately to update the current file in the queue
+				doPoll();
+			}
+
+			return true;
+		}
+		default :
+			return super.onContextItemSelected(menuItem);
+		}
+	}
+
+	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_VOLUME_UP : {
@@ -230,7 +267,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 			intent.putExtra("action", "player_goto");
 			intent.putExtra("index", new JSONArray(idx).toString());
 			startService(intent);
-			
+
 			// poll immediately to update the current file in the queue
 			doPoll();
 		} else if (item instanceof Album) {
@@ -287,6 +324,12 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	private void doPoll() {
 		Intent intent = new Intent(MainActivity.this, Service.class);
 		intent.putExtra("action", "player_status");
+		startService(intent);
+	}
+
+	private void refreshQueue() {
+		Intent intent = new Intent(this, Service.class);
+		intent.putExtra("action", "player_queue_get");
 		startService(intent);
 	}
 

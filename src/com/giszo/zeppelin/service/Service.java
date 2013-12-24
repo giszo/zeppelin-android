@@ -51,6 +51,11 @@ public class Service extends IntentService {
 			playerQueueFile(intent.getIntExtra("id", -1));
 		else if (action.equals("player_queue_album"))
 			playerQueueAlbum(intent.getIntExtra("id", -1));
+		else if (action.equals("player_queue_remove"))
+			try {
+				playerQueueRemove(new JSONArray(intent.getStringExtra("index")));
+			} catch (JSONException e) {
+			}
 		else if (action.equals("player_status"))
 			playerStatus();
 		else if (action.equals("player_play"))
@@ -256,7 +261,23 @@ public class Service extends IntentService {
 		
 		execute("player_goto", params);
 	}
-	
+
+	private void playerQueueRemove(JSONArray index) {
+		if (index.length() == 0)
+			return;
+		
+		JSONObject params;
+		
+		try {
+			params = new JSONObject();
+			params.put("index", index);
+		} catch (JSONException e) {
+			return;
+		}
+		
+		execute("player_queue_remove", params);
+	}
+
 	private void playerIncVolume() {
 		execute("player_inc_volume", null);
 	}
