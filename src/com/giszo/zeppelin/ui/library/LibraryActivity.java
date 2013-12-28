@@ -20,6 +20,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -28,6 +30,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.AdapterView.OnItemClickListener;
 
@@ -40,11 +44,12 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 	private enum State { ARTISTS, ALBUMS, FILES, FILES_UNKNOWN };
 	private State state = State.ARTISTS;
 	
+	private EditText filter;
 	private ListView listView;
 
-	private ArtistAdapter artistAdapter = new ArtistAdapter(this);
-	private AlbumAdapter albumAdapter = new AlbumAdapter(this);
-	private FileAdapter fileAdapter = new FileAdapter(this);
+	private ArtistAdapter artistAdapter;
+	private AlbumAdapter albumAdapter;
+	private FileAdapter fileAdapter;
 
 	private Receiver receiver = new Receiver();
 
@@ -54,6 +59,22 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 		
 		// initialize the view
 		setContentView(R.layout.activity_library);
+
+		artistAdapter = new ArtistAdapter(this);
+		albumAdapter = new AlbumAdapter(this);
+		fileAdapter = new FileAdapter(this);
+
+		filter = (EditText)findViewById(R.id.library_filter);
+		filter.addTextChangedListener(new TextWatcher() {
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				((ArrayAdapter)listView.getAdapter()).getFilter().filter(s);
+			}
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+			@Override
+			public void afterTextChanged(Editable s) {}
+		});
 		
 		listView = (ListView)findViewById(R.id.library_list);
 		listView.setAdapter(artistAdapter);
@@ -177,7 +198,7 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 			
 			if (action.equals("artist_list_received")) {
 				try {
-					artistAdapter.clear();
+					artistAdapter.clearAll();
 
 					JSONArray list = new JSONArray(intent.getStringExtra("artists"));
 					
@@ -241,6 +262,8 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 
 				listView.setAdapter(fileAdapter);
 
+				filter.setText("");
+
 				state = State.FILES;
 			}
 		}
@@ -268,6 +291,8 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 			
 			albumAdapter.set(albums);
 			listView.setAdapter(albumAdapter);
+			
+			filter.setText("");
 			
 			state = State.ALBUMS;
 
@@ -313,6 +338,8 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 			state = State.ARTISTS;
 			break;
 		}
+		
+		filter.setText("");
 	}
 	
 	private void refreshQueue() {
@@ -322,7 +349,7 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 	}
 	
 	private void buildFileList(JSONArray list) throws JSONException {
-		fileAdapter.clear();
+		fileAdapter.clearAll();
 		
 		for (int i = 0; i < list.length(); ++i) {
 			JSONObject item = list.getJSONObject(i);

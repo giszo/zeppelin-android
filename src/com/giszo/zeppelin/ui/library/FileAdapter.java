@@ -10,47 +10,37 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.widget.ArrayAdapter;
+import android.widget.Filter;
 import android.widget.TextView;
 
-public class FileAdapter extends BaseAdapter {
-	private Context context;
-
+public class FileAdapter extends ArrayAdapter<File> {
 	private List<File> files = new ArrayList<File>();
 
 	public FileAdapter(Context context) {
-		this.context = context;
+		super(context, R.layout.library_file_item);
 	}
 	
 	public void add(File file) {
+		super.add(file);
 		files.add(file);
 	}
 	
-	public void clear() {
+	public void clearAll() {
+		clear();
 		files.clear();
 	}
 
 	@Override
-	public int getCount() {
-		return files.size();
+	public Filter getFilter() {
+		return new FileFilter();
 	}
 
 	@Override
-	public Object getItem(int index) {
-		return files.get(index);
-	}
+	public View getView(int position, View convertView, ViewGroup parent) {
+		File file = getItem(position);
 
-	@Override
-	public long getItemId(int index) {
-		// TODO
-		return 0;
-	}
-
-	@Override
-	public View getView(int index, View convertView, ViewGroup parent) {
-		File file = files.get(index);
-
-		View view = LayoutInflater.from(context).inflate(R.layout.library_file_item, null);
+		View view = LayoutInflater.from(getContext()).inflate(R.layout.library_file_item, null);
 
 		TextView title = (TextView)view.findViewById(R.id.library_file_item_title);
 		TextView length = (TextView)view.findViewById(R.id.library_file_item_length);
@@ -65,4 +55,36 @@ public class FileAdapter extends BaseAdapter {
 		return view;
 	}
 
+
+	private class FileFilter extends Filter {
+		@Override
+		protected FilterResults performFiltering(CharSequence constraint) {
+			String filter = constraint.toString().toLowerCase();
+			FilterResults res = new FilterResults();
+			
+			if (constraint == null || constraint.length() == 0) {
+				res.values = files;
+				res.count = files.size();
+			} else {
+				List<File> filtered = new ArrayList<File>();
+				
+				for (File file : files) {
+					if (file.getTitle().toLowerCase().contains(filter))
+						filtered.add(file);
+				}
+				
+				res.values = filtered;
+				res.count = filtered.size();
+			}
+			
+			return res;
+		}
+
+		@Override
+		protected void publishResults(CharSequence constraint, FilterResults results) {
+			clear();
+			addAll((List<File>)results.values);
+			notifyDataSetChanged();
+		}
+	}
 }
