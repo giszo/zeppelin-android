@@ -15,6 +15,7 @@ import com.giszo.zeppelin.service.Service;
 import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -47,6 +48,8 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 	private EditText filter;
 	private ListView listView;
 
+	private ProgressDialog progress;
+	
 	private ArtistAdapter artistAdapter;
 	private AlbumAdapter albumAdapter;
 	private FileAdapter fileAdapter;
@@ -86,6 +89,9 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 		lbm.registerReceiver(receiver, new IntentFilter("album_list_received"));
 		lbm.registerReceiver(receiver, new IntentFilter("files_of_artist_received"));
 		lbm.registerReceiver(receiver, new IntentFilter("files_of_album_received"));
+		
+		// display progress dialog until all of the data is loaded
+		showProgressDialog();
 		
 		// ask the service to load the list of artists
 		Intent intent = new Intent(this, Service.class);
@@ -243,6 +249,8 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 					Log.d(TAG, "Got " + list.length() + " albums");
 				} catch (JSONException e) {
 				}
+				
+				dismissProgressDialog();
 			} else if (action.equals("files_of_artist_received")) {
 				try {
 					buildFileList(new JSONArray(intent.getStringExtra("files")));
@@ -360,5 +368,19 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 				item.getString("title"),
 				item.getInt("length")));
 		}
+	}
+	
+	private void showProgressDialog() {
+		progress = new ProgressDialog(this);
+		progress.setTitle(getResources().getString(R.string.library_progress_title));
+		progress.setMessage(getResources().getString(R.string.library_progress_message));
+		progress.setCancelable(false);
+		progress.setIndeterminate(true);
+		progress.show();
+	}
+	
+	private void dismissProgressDialog() {
+		progress.dismiss();
+		progress = null;
 	}
 }

@@ -19,6 +19,9 @@
     <string name="action_queue_album">Queue album</string>
     <string name="action_queue_file">Queue file</string>
 
+    <string name="library_progress_title">Loading ...</string>
+    <string name="library_progress_message">Please wait.</string>
+    
     <string name="unknown_artist">Unknown Artist</string>
     
     <plurals name="number_of_albums">
