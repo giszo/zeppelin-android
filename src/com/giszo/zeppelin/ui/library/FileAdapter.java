@@ -69,7 +69,7 @@ public class FileAdapter extends ArrayAdapter<File> {
 				List<File> filtered = new ArrayList<File>();
 				
 				for (File file : files) {
-					if (file.getTitle().toLowerCase().contains(filter))
+					if (matchFile(file, filter))
 						filtered.add(file);
 				}
 				
@@ -85,6 +85,14 @@ public class FileAdapter extends ArrayAdapter<File> {
 			clear();
 			addAll((List<File>)results.values);
 			notifyDataSetChanged();
+		}
+		
+		private boolean matchFile(File file, String filter) {
+			if (!file.getTitle().isEmpty()) {
+				return file.getTitle().toLowerCase().contains(filter);
+			}
+			
+			return file.getName().toLowerCase().contains(filter);
 		}
 	}
 }
