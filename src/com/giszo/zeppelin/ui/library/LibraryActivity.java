@@ -96,19 +96,8 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 		lbm.registerReceiver(receiver, new IntentFilter("album_list_received"));
 		lbm.registerReceiver(receiver, new IntentFilter("files_of_artist_received"));
 		lbm.registerReceiver(receiver, new IntentFilter("files_of_album_received"));
-		
-		// display progress dialog until all of the data is loaded
-		showProgressDialog();
-		
-		// ask the service to load the list of artists
-		Intent intent = new Intent(this, Service.class);
-		intent.putExtra("action", "library_get_artists");
-		startService(intent);
-		
-		// ... and load the list of albums as well
-		intent = new Intent(this, Service.class);
-		intent.putExtra("action", "library_get_albums");
-		startService(intent);
+
+		refresh();
 	}
 
 	@Override
@@ -134,6 +123,11 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 			return true;
 		}
 
+		case R.id.action_library_refresh : {
+			refresh();
+			return true;
+		}
+		
 		default :
 			return super.onOptionsItemSelected(item);
 		}
@@ -449,5 +443,20 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 	private void dismissProgressDialog() {
 		progress.dismiss();
 		progress = null;
+	}
+	
+	private void refresh() {
+		// display progress dialog until all of the data is loaded
+		showProgressDialog();
+		
+		// ask the service to load the list of artists
+		Intent intent = new Intent(this, Service.class);
+		intent.putExtra("action", "library_get_artists");
+		startService(intent);
+		
+		// ... and load the list of albums as well
+		intent = new Intent(this, Service.class);
+		intent.putExtra("action", "library_get_albums");
+		startService(intent);
 	}
 }

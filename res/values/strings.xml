@@ -13,6 +13,8 @@
 
     <!-- library activity -->
     <string name="action_library_scan">Scan</string>
+    <string name="action_library_refresh">Refresh</string>
+
     <string name="action_queue_album">Queue album</string>
     <string name="action_queue_file">Queue file</string>
     <string name="action_file_edit_metadata">Edit metadata</string>
