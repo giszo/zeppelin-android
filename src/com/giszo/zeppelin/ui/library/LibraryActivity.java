@@ -40,7 +40,11 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 	private static final String TAG = "LibraryActivity";
 
 	@SuppressLint("UseSparseArrays")
-	private Map<Integer, List<Album>> albumMap = new HashMap<Integer, List<Album>>();
+	private Map<Integer, Artist> artistMap = new HashMap<Integer, Artist>();
+	@SuppressLint("UseSparseArrays")
+	private Map<Integer, Album> albumMap = new HashMap<Integer, Album>();
+	@SuppressLint("UseSparseArrays")
+	private Map<Integer, List<Album>> albumsByArtist = new HashMap<Integer, List<Album>>();
 	
 	private enum State { ARTISTS, ALBUMS, FILES, FILES_UNKNOWN };
 	private State state = State.ARTISTS;
@@ -53,6 +57,9 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 	private ArtistAdapter artistAdapter;
 	private AlbumAdapter albumAdapter;
 	private FileAdapter fileAdapter;
+
+	private int currentArtist = -1;
+	private int currentAlbum = -1;
 
 	private Receiver receiver = new Receiver();
 
@@ -191,6 +198,41 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 			return true;
 		}
 
+		case R.id.action_file_edit_metadata : {
+			AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+			File file = (File)fileAdapter.getItem(info.position);
+
+			// start metadata editor activity
+			Intent intent = new Intent(this, MetadataActivity.class);
+			intent.putExtra("id", file.getId());
+			intent.putExtra("name", file.getName());
+			intent.putExtra("title", file.getTitle());
+			intent.putExtra("year", file.getYear());
+			intent.putExtra("trackIndex", file.getTrackIndex());
+			intent.putExtra("codec", file.getType().ordinal());
+			intent.putExtra("samplingRate", file.getSamplingRate());
+			
+			// add artist if we have it
+			if (currentArtist != -1) {
+				Artist artist = artistMap.get(Integer.valueOf(currentArtist));
+				
+				if (artist != null)
+					intent.putExtra("artist", artist.getName());
+			}
+			
+			// add album if we have it
+			if (currentAlbum != -1) {
+				Album album = albumMap.get(Integer.valueOf(currentAlbum));
+				
+				if (album != null)
+					intent.putExtra("album", album.getName());
+			}
+
+			startActivity(intent);
+
+			return true;
+		}
+
 		default :
 			return super.onContextItemSelected(item);
 		}
@@ -204,17 +246,24 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 			
 			if (action.equals("artist_list_received")) {
 				try {
+					artistMap.clear();
 					artistAdapter.clearAll();
 
 					JSONArray list = new JSONArray(intent.getStringExtra("artists"));
 					
 					for (int i = 0; i < list.length(); ++i) {
 						JSONObject item = list.getJSONObject(i);
-						artistAdapter.add(new Artist(
+
+						Artist artist = new Artist(
 							item.getInt("id"),
 							item.getString("name"),
 							item.getInt("albums"),
-							item.getInt("songs")));
+							item.getInt("songs"));
+
+						// put it to the artist map
+						artistMap.put(Integer.valueOf(artist.getId()), artist);
+						
+						artistAdapter.add(artist);
 					}
 					
 					Log.d(TAG, "Got " + artistAdapter.getCount() + " artists");
@@ -225,25 +274,33 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 			} else if (action.equals("album_list_received")) {
 				try {
 					albumMap.clear();
+					albumsByArtist.clear();
 					
 					JSONArray list = new JSONArray(intent.getStringExtra("albums"));
 					
 					for (int i = 0; i < list.length(); ++i) {
 						JSONObject item = list.getJSONObject(i);
 						Integer artist = Integer.valueOf(item.getInt("artist"));
-						
-						List<Album> albums = albumMap.get(artist);
+
+						Album album = new Album(
+							item.getInt("id"),
+							artist.intValue(),
+							item.getString("name"),
+							item.getInt("songs"),
+							item.getInt("length"));
+
+						// put it to the album map
+						albumMap.put(Integer.valueOf(album.getId()), album);
+
+						// put it to the albums-by-artist map
+						List<Album> albums = albumsByArtist.get(artist);
 						
 						if (albums == null) {
 							albums = new ArrayList<Album>();
-							albumMap.put(artist, albums);
+							albumsByArtist.put(artist, albums);
 						}
 						
-						albums.add(new Album(
-							item.getInt("id"),
-							item.getString("name"),
-							item.getInt("songs"),
-							item.getInt("length")));
+						albums.add(album);
 					}
 					
 					Log.d(TAG, "Got " + list.length() + " albums");
@@ -282,7 +339,9 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 		switch (state) {
 		case ARTISTS : {
 			Artist artist = (Artist)artistAdapter.getItem(pos);
-			
+
+			currentArtist = artist.getId();
+
 			// handle unknown artist differently
 			if (artist.getId() == -1) {
 				Intent intent = new Intent(this, Service.class);
@@ -292,7 +351,7 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 				return;
 			}
 			
-			List<Album> albums = albumMap.get(Integer.valueOf(artist.getId()));
+			List<Album> albums = albumsByArtist.get(Integer.valueOf(artist.getId()));
 			
 			if (albums == null)
 				return;
@@ -309,7 +368,9 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 			
 		case ALBUMS : {
 			Album album = (Album)albumAdapter.getItem(pos);
-			
+
+			currentAlbum = album.getId();
+
 			Intent intent = new Intent(this, Service.class);
 			intent.putExtra("action", "library_get_files_of_album");
 			intent.putExtra("id", album.getId());
@@ -334,11 +395,13 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 		case ALBUMS :
 			listView.setAdapter(artistAdapter);
 			state = State.ARTISTS;
+			currentArtist = -1;
 			break;
 			
 		case FILES :
 			listView.setAdapter(albumAdapter);
 			state = State.ALBUMS;
+			currentAlbum = -1;
 			break;
 			
 		case FILES_UNKNOWN :
@@ -366,7 +429,11 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 				item.getInt("id"),
 				item.getString("name"),
 				item.getString("title"),
-				item.getInt("length")));
+				item.getInt("length"),
+				item.getInt("year"),
+				item.getInt("track_index"),
+				File.Type.values()[item.getInt("codec")],
+				item.getInt("sampling_rate")));
 		}
 	}
 	

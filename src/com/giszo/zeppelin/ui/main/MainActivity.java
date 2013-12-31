@@ -308,6 +308,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 						indicator.set(status.getInt("position"), file == null ? 0 : file.getLength());
 					}
 				} catch (JSONException e) {
+					e.printStackTrace();
 				}
 			}
 		}	
@@ -347,6 +348,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 				// album
 				Album album = new Album(parent, depth, new com.giszo.zeppelin.ui.library.Album(
 					item.getInt("id"),
+					-1, // TODO: artist id
 					item.getString("name"),
 					0,
 					0));
@@ -361,13 +363,17 @@ public class MainActivity extends Activity implements OnItemClickListener {
 					item.getInt("id"),
 					item.getString("name"),
 					item.getString("title"),
-					item.getInt("length"));
+					item.getInt("length"),
+					0, // TODO: year
+					0, // TODO: track index
+					com.giszo.zeppelin.ui.library.File.Type.values()[item.getInt("codec")],
+					item.getInt("sampling_rate"));
 				fileMap.put(Integer.valueOf(file.getId()), file);
 				parent.add(new File(parent, depth, file));
 
 				break;
 			}
-			}	
+			}
 		}
 	}
 

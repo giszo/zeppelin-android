@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class FileAdapter extends ArrayAdapter<File> {
@@ -44,13 +45,17 @@ public class FileAdapter extends ArrayAdapter<File> {
 
 		TextView title = (TextView)view.findViewById(R.id.library_file_item_title);
 		TextView length = (TextView)view.findViewById(R.id.library_file_item_length);
-		
+		TextView type = (TextView)view.findViewById(R.id.library_file_item_type);
+
 		// set title
 		String s = file.getTitle().isEmpty() ? file.getName() : file.getTitle();
 		title.setText(s);
 		
 		// set length
 		length.setText(TimeFormatter.format(file.getLength()));
+		
+		if (file.getType() == File.Type.FLAC)
+			type.setText(getContext().getResources().getString(R.string.type_flac));
 		
 		return view;
 	}

@@ -8,6 +8,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,7 +48,15 @@ public class Service extends IntentService {
 			libraryGetFilesOfArtist(intent.getIntExtra("id", -1));
 		else if (action.equals("library_get_files_of_album"))
 			libraryGetFilesOfAlbum(intent.getIntExtra("id", -1));
-		else if (action.equals("player_queue_get"))
+		else if (action.equals("library_update_metadata")) {
+			libraryUpdateMetadata(
+				intent.getIntExtra("id", -1),
+				intent.getStringExtra("artist"),
+				intent.getStringExtra("album"),
+				intent.getStringExtra("title"),
+				intent.getIntExtra("year", 0),
+				intent.getIntExtra("trackIndex", 0));
+		} else if (action.equals("player_queue_get"))
 			playerQueueGet();
 		else if (action.equals("player_queue_file"))
 			playerQueueFile(intent.getIntExtra("id", -1));
@@ -162,6 +173,32 @@ public class Service extends IntentService {
 			LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 		} catch (JSONException e) {
 		}
+	}
+
+	private void libraryUpdateMetadata(int id,
+			String artist,
+			String album,
+			String title,
+			int year,
+			int trackIndex) {
+		if (id == -1)
+			return;
+		
+		JSONObject params;
+		
+		try {
+			params = new JSONObject();
+			params.put("id", id);
+			params.put("artist", artist);
+			params.put("album", album);
+			params.put("title", title);
+			params.put("year", year);
+			params.put("track_index", trackIndex);
+		} catch (JSONException e) {
+			return;
+		}
+		
+		execute("library_update_metadata", params);
 	}
 
 	private void playerQueueGet() {
@@ -293,7 +330,10 @@ public class Service extends IntentService {
 		if (server.isEmpty())
 			return null;
 		
-		HttpClient client = new DefaultHttpClient();
+		HttpParams p = new BasicHttpParams();
+		HttpProtocolParams.setContentCharset(p, "utf-8");
+
+		HttpClient client = new DefaultHttpClient(p);
 		HttpPost post = new HttpPost(server);		
 
 		try {
@@ -305,11 +345,9 @@ public class Service extends IntentService {
 				req.put("params", params);
 			else
 				req.put("params", JSONObject.NULL);
-
-			Log.d(TAG, "JSON request: " + req.toString());
 			
 			ResponseHandler<String> responseHandler = new BasicResponseHandler();
-			post.setEntity(new StringEntity(req.toString()));
+			post.setEntity(new StringEntity(req.toString(), "UTF-8"));
 			String response = client.execute(post, responseHandler);
 			return new JSONObject(response);
 		} catch (JSONException e) {

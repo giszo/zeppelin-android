@@ -15,12 +15,12 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Holo.NoActionBar" >
-
         <activity
             android:name="com.giszo.zeppelin.ui.main.MainActivity"
             android:label="@string/title_activity_main" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -33,10 +33,13 @@
             android:name="com.giszo.zeppelin.ui.library.LibraryActivity"
             android:label="@string/title_activity_library" >
         </activity>
-
         <activity
             android:name="com.giszo.zeppelin.ui.settings.SettingsActivity"
             android:label="@string/title_activity_settings" >
+        </activity>
+        <activity
+            android:name="com.giszo.zeppelin.ui.library.MetadataActivity"
+            android:label="@string/title_activity_metadata" >
         </activity>
     </application>
 
