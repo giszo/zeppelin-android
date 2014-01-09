@@ -48,11 +48,7 @@ public class ArtistAdapter extends ArrayAdapter<Artist> {
 		name.setText(artist.getId() == -1 ? getContext().getResources().getString(R.string.unknown_artist) : artist.getName());
 		
 		// set description
-		StringBuilder sb = new StringBuilder();
-		sb.append(getContext().getResources().getQuantityString(R.plurals.number_of_albums, artist.getAlbums(), artist.getAlbums()));
-		sb.append(", ");
-		sb.append(getContext().getResources().getQuantityString(R.plurals.number_of_songs, artist.getSongs(), artist.getSongs()));
-		description.setText(sb.toString());
+		description.setText(getContext().getResources().getQuantityString(R.plurals.number_of_albums, artist.getAlbums(), artist.getAlbums()));
 		
 		return view;
 	}

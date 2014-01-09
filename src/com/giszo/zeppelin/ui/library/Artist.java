@@ -4,13 +4,11 @@ public class Artist {
 	private int id;
 	private String name;
 	private int albums;
-	private int songs;
 
-	public Artist(int id, String name, int albums, int songs) {
+	public Artist(int id, String name, int albums) {
 		this.id = id;
 		this.name = name;
 		this.albums = albums;
-		this.songs = songs;
 	}
 	
 	public int getId() {
@@ -23,9 +21,5 @@ public class Artist {
 	
 	public int getAlbums() {
 		return albums;
-	}
-	
-	public int getSongs() {
-		return songs;
 	}
 }

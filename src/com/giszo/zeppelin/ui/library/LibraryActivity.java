@@ -1,6 +1,7 @@
 package com.giszo.zeppelin.ui.library;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -251,8 +252,7 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 						Artist artist = new Artist(
 							item.getInt("id"),
 							item.getString("name"),
-							item.getInt("albums"),
-							item.getInt("songs"));
+							item.getInt("albums"));
 
 						// put it to the artist map
 						artistMap.put(Integer.valueOf(artist.getId()), artist);
@@ -260,6 +260,13 @@ public class LibraryActivity extends Activity implements OnItemClickListener {
 						artistAdapter.add(artist);
 					}
 					
+					artistAdapter.sort(
+						new Comparator<Artist>() {
+							public int compare(Artist lhs, Artist rhs) {
+								return lhs.getName().compareToIgnoreCase(rhs.getName());
+							}
+					});
+
 					Log.d(TAG, "Got " + artistAdapter.getCount() + " artists");
 				} catch (JSONException e) {
 				}
