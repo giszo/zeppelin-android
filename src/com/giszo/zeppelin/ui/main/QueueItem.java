@@ -53,6 +53,15 @@ public class QueueItem extends LinearLayout {
 					R.plurals.number_of_songs,
 					qa.getSongCount(),
 					qa.getSongCount()));
+		} else if (item instanceof com.giszo.zeppelin.queue.Directory) {
+			com.giszo.zeppelin.queue.Directory directory = (com.giszo.zeppelin.queue.Directory)item;
+
+			name.setText(directory.getName());
+			description.setText(
+					getResources().getQuantityString(
+						R.plurals.number_of_songs,
+						directory.getSongCount(),
+						directory.getSongCount()));
 		}
 		
 		name.setTypeface(null, played ? Typeface.BOLD : Typeface.NORMAL);

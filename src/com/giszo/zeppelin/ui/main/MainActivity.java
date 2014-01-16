@@ -13,6 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.giszo.zeppelin.R;
+import com.giszo.zeppelin.queue.Directory;
 import com.giszo.zeppelin.queue.File;
 import com.giszo.zeppelin.queue.Album;
 import com.giszo.zeppelin.queue.ContainerQueueItem;
@@ -272,6 +273,9 @@ public class MainActivity extends Activity implements OnItemClickListener {
 		} else if (item instanceof Album) {
 			((Album)item).toggleVisibility();
 			MainActivity.this.adapter.notifyDataSetChanged();
+		} else if (item instanceof Directory) {
+			((Directory)item).toggleVisibility();
+			MainActivity.this.adapter.notifyDataSetChanged();
 		}
 	}
 
@@ -336,15 +340,14 @@ public class MainActivity extends Activity implements OnItemClickListener {
 	private void updateQueueLevel(int depth, Map<Integer, com.giszo.zeppelin.ui.library.File> fileMap, ContainerQueueItem parent, JSONArray items) throws JSONException {
 		for (int i = 0; i < items.length(); ++i) {
 			JSONObject item = items.getJSONObject(i);
-
-			int type = item.getInt("type");
+			String type = item.getString("type");
 			
-			switch (type) {
-			case 0 :
-				// playlist
-				break;
-				
-			case 1 :
+			if (type.equals("dir")) {
+				// directory
+				Directory directory = new Directory(parent, depth, item.getString("name"));
+				updateQueueLevel(depth + 1, fileMap, directory, item.getJSONArray("files"));
+				parent.add(directory);
+			} else if (type.equals("album")) {
 				// album
 				Album album = new Album(parent, depth, new com.giszo.zeppelin.ui.library.Album(
 					item.getInt("id"),
@@ -354,10 +357,7 @@ public class MainActivity extends Activity implements OnItemClickListener {
 					0));
 				updateQueueLevel(depth + 1, fileMap, album, item.getJSONArray("files"));
 				parent.add(album);
-				
-				break;
-				
-			case 2 : {
+			} else if (type.equals("file")) {
 				// file
 				com.giszo.zeppelin.ui.library.File file = new com.giszo.zeppelin.ui.library.File(
 					item.getInt("id"),
@@ -370,9 +370,6 @@ public class MainActivity extends Activity implements OnItemClickListener {
 					item.getInt("sampling_rate"));
 				fileMap.put(Integer.valueOf(file.getId()), file);
 				parent.add(new File(parent, depth, file));
-
-				break;
-			}
 			}
 		}
 	}
