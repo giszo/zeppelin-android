@@ -9,10 +9,14 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class QueueItem extends LinearLayout {
+	private View container;
+	private ImageView image;
 	private TextView name;
 	private TextView description;
 
@@ -28,7 +32,9 @@ public class QueueItem extends LinearLayout {
 		super(context, attrs, defStyle);
 		
 		LayoutInflater.from(context).inflate(R.layout.queue_item, this);
-		
+
+		container = findViewById(R.id.queue_item_container);
+		image = (ImageView)findViewById(R.id.queue_item_image);
 		name = (TextView)findViewById(R.id.queue_item_name);
 		description = (TextView)findViewById(R.id.queue_item_description);
 	}
@@ -41,12 +47,14 @@ public class QueueItem extends LinearLayout {
 			File file = ((com.giszo.zeppelin.queue.File)item).getFile();
 			String s = file.getTitle().isEmpty() ? file.getName() : file.getTitle();
 
+			image.setImageResource(R.drawable.song);
 			name.setText(s);
 			description.setText(TimeFormatter.format(file.getLength()));
 		} else if (item instanceof com.giszo.zeppelin.queue.Album) {
 			com.giszo.zeppelin.queue.Album qa = (com.giszo.zeppelin.queue.Album)item;
 			Album album = qa.getAlbum();
 
+			image.setImageResource(R.drawable.album);
 			name.setText(album.getName());
 			description.setText(
 				getResources().getQuantityString(
@@ -56,6 +64,7 @@ public class QueueItem extends LinearLayout {
 		} else if (item instanceof com.giszo.zeppelin.queue.Directory) {
 			com.giszo.zeppelin.queue.Directory directory = (com.giszo.zeppelin.queue.Directory)item;
 
+			image.setImageResource(R.drawable.folder);
 			name.setText(directory.getName());
 			description.setText(
 					getResources().getQuantityString(
@@ -64,6 +73,6 @@ public class QueueItem extends LinearLayout {
 						directory.getSongCount()));
 		}
 		
-		name.setTypeface(null, played ? Typeface.BOLD : Typeface.NORMAL);
+		container.setBackgroundColor(played ? 0x800099cc : 0x00000000);
 	}
 }

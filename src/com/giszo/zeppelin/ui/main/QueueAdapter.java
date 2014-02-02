@@ -49,7 +49,14 @@ public class QueueAdapter extends BaseAdapter {
 
 	@Override
 	public View getView(int index, View view, ViewGroup group) {
-		QueueItem item = new QueueItem(context);
+		QueueItem item;
+		
+		// try to reuse a previously created view
+		if (view != null)
+			item = (QueueItem)view;
+		else
+			item = new QueueItem(context);
+
 		com.giszo.zeppelin.queue.QueueItem qi = (com.giszo.zeppelin.queue.QueueItem)getItem(index);
 		
 		boolean played = false;

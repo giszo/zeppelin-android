@@ -1,7 +1,26 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+	android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:src="@drawable/bg_wood"
+        android:scaleType="center"/>
+    
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="32dp"
+        android:layout_centerInParent="true"
+        android:src="@drawable/logo"/>
+
+<LinearLayout
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" 
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
@@ -13,7 +32,8 @@
         android:id="@+id/main_queue"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="1"
+        android:overScrollMode="never"/>
     
     <com.giszo.zeppelin.ui.controls.PlaybackIndicator
         android:id="@+id/main_indicator"
@@ -59,3 +79,5 @@
             android:layout_weight="1"/>
     </LinearLayout>
 </LinearLayout>
+
+</RelativeLayout>
